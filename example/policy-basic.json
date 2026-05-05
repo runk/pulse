@@ -1,0 +1,9 @@
+{
+  "name": "basic policy",
+  "checks": [
+    {
+      "type": "http-check",
+      "url": "https://example.com"
+    }
+  ]
+}
