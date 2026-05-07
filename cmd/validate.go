@@ -20,7 +20,9 @@ This is useful for catching syntax errors or misconfigurations before attempting
 	RunE: func(cmd *cobra.Command, args []string) error {
 		filename := args[0]
 
-		fmt.Printf("Validating policy file: %s\n", filename)
+		stdout := cmd.OutOrStdout()
+
+		fmt.Fprintf(stdout, "Validating policy file: %s\n", filename)
 
 		fd, err := os.OpenFile(filename, os.O_RDONLY, 0)
 		if err != nil {
@@ -35,7 +37,7 @@ This is useful for catching syntax errors or misconfigurations before attempting
 		}
 
 		successMsg := color.New(color.FgGreen, color.Bold).Sprint("Success!")
-		fmt.Printf("%s Policy is valid.\n", successMsg)
+		fmt.Fprintf(stdout, "%s Policy is valid.\n", successMsg)
 
 		return nil
 	},
