@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/runk/pulse/internal/policy"
 	"github.com/spf13/cobra"
 )
@@ -14,21 +16,28 @@ var validateCmd = &cobra.Command{
 	Short: "Validate a policy file without running it",
 	Long: `Validation ensures that the policy file is correctly formatted and can be parsed without errors.
 This is useful for catching syntax errors or misconfigurations before attempting to execute the policy.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("validate called")
-
-		if len(args) != 1 {
-			fmt.Println("Please provide exactly one argument to validate.")
-			os.Exit(1)
-		}
-
+	Args: cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
 		filename := args[0]
 
-		_, err := policy.ReadPolicy(filename)
+		fmt.Printf("Validating policy file: %s\n", filename)
+
+		fd, err := os.OpenFile(filename, os.O_RDONLY, 0)
 		if err != nil {
-			fmt.Println("Error reading policy:", err)
-			os.Exit(1)
+			return fmt.Errorf("Cannot open policy file: %w. Check that file exists and is accessible.", err)
 		}
+		defer fd.Close()
+
+		_, err = policy.ReadPolicy(filename)
+		if err != nil {
+			errorMsg := color.New(color.FgRed).Sprintf("Policy validation failed: %v", err)
+			return errors.New(errorMsg)
+		}
+
+		successMsg := color.New(color.FgGreen, color.Bold).Sprint("Success!")
+		fmt.Printf("%s Policy is valid.\n", successMsg)
+
+		return nil
 	},
 }
 

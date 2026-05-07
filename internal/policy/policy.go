@@ -31,3 +31,7 @@ func ReadPolicy(filename string) (Policy, error) {
 
 	return policy, nil
 }
+
+func ValidatePolicy(filename string) error {
+	return nil
+}
