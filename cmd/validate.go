@@ -2,22 +2,33 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/runk/pulse/internal/policy"
 	"github.com/spf13/cobra"
 )
 
 // validateCmd represents the validate command
 var validateCmd = &cobra.Command{
 	Use:   "validate",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Validate a policy file without running it",
+	Long: `Validation ensures that the policy file is correctly formatted and can be parsed without errors.
+This is useful for catching syntax errors or misconfigurations before attempting to execute the policy.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("validate called")
+
+		if len(args) != 1 {
+			fmt.Println("Please provide exactly one argument to validate.")
+			os.Exit(1)
+		}
+
+		filename := args[0]
+
+		_, err := policy.ReadPolicy(filename)
+		if err != nil {
+			fmt.Println("Error reading policy:", err)
+			os.Exit(1)
+		}
 	},
 }
 
