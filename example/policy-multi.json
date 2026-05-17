@@ -1,0 +1,37 @@
+{
+  "name": "basic policy",
+  "checks": [
+    {
+      "type": "http-check",
+      "url": "https://example.com"
+    },
+    {
+      "type": "http-check",
+      "url": "https://github.com"
+    },
+    {
+      "type": "http-check",
+      "url": "https://yahoo.com"
+    },
+    {
+      "type": "http-check",
+      "url": "https://facebook.com"
+    },
+    {
+      "type": "http-check",
+      "url": "https://amazon.com"
+    },
+    {
+      "type": "http-check",
+      "url": "https://wikipedia.com"
+    },
+    {
+      "type": "http-check",
+      "url": "https://x.com"
+    },
+    {
+      "type": "http-check",
+      "url": "https://google.com"
+    }
+  ]
+}

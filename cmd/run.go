@@ -4,12 +4,13 @@ import (
 	"fmt"
 
 	"github.com/runk/pulse/internal/policy"
+	"github.com/runk/pulse/internal/runner"
 	"github.com/spf13/cobra"
 )
 
-func runChecks(checks policy.Check, concurrency uint16) error {
-	return nil
-}
+var (
+	concurrency uint16
+)
 
 // runCmd represents the run command
 var runCmd = &cobra.Command{
@@ -35,6 +36,8 @@ You can specify the level of concurrency for running checks using the --concurre
 		}
 
 		fmt.Fprintf(stdout, "Policy loaded: %+v\n", policy)
+
+		runner.Execute(policy.Checks, concurrency)
 		return nil
 	},
 }
@@ -52,5 +55,5 @@ func init() {
 	// is called directly, e.g.:
 	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	runCmd.Flags().Uint16P("concurrency", "c", 4, "Level of concurrency")
+	runCmd.Flags().Uint16VarP(&concurrency, "concurrency", "c", 4, "Level of concurrency")
 }
