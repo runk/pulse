@@ -7,34 +7,35 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func runChecks(checks policy.Check, concurrency uint16) error {
+	return nil
+}
+
 // runCmd represents the run command
 var runCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Run a policy with all its checks",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("run called")
+	Long: `The run command executes the specified policy file, performing all defined checks and actions.
+	This command will read the policy file, validate its structure, and then execute the checks in the order they are defined.
+You can specify the level of concurrency for running checks using the --concurrency flag.`,
+	Args: cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		stdout := cmd.OutOrStdout()
 
 		if len(args) != 1 {
-			fmt.Println("Please provide a single policy file, e.g. 'pulse run policy.json'")
-			return
+			return fmt.Errorf("Please provide a single policy file, e.g. 'pulse run policy.json'")
 		}
 
 		filename := args[0]
-		fmt.Println("Using policy file:", filename)
+		fmt.Fprintf(stdout, "Using policy file: %s\n", filename)
 
 		policy, err := policy.ReadPolicy(filename)
 		if err != nil {
-			fmt.Println("Error reading policy:", err)
-			return
+			return fmt.Errorf("Error reading policy: %w", err)
 		}
 
-		fmt.Printf("Policy loaded: %+v\n", policy)
+		fmt.Fprintf(stdout, "Policy loaded: %+v\n", policy)
+		return nil
 	},
 }
 
