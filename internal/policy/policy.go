@@ -3,20 +3,16 @@ package policy
 import (
 	"encoding/json"
 	"os"
+
+	"github.com/runk/pulse/internal/check"
 )
 
-type Check struct {
-	Type string `json:"type"`
-	Url  string `json:"url"`
-}
-
 type Policy struct {
-	Name   string  `json:"name"`
-	Checks []Check `json:"checks"`
+	Name   string        `json:"name"`
+	Checks []check.Check `json:"checks"`
 }
 
 func ReadPolicy(filename string) (Policy, error) {
-
 	content, err := os.ReadFile(filename)
 
 	if err != nil {

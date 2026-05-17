@@ -2,5 +2,5 @@
   "name": "basic policy",
   "checks": [
     {
-      "type": "http-check",
+      "type": "http",
 

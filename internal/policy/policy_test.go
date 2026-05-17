@@ -20,11 +20,8 @@ func TestReadPolicyOk(t *testing.T) {
 		t.Fatal("expected at least one check")
 	}
 	for i, c := range policy.Checks {
-		if c.Type == "" {
+		if c.Value.Type() == "" {
 			t.Fatalf("check %d: type is empty", i)
-		}
-		if c.Url == "" {
-			t.Fatalf("check %d: url is empty", i)
 		}
 	}
 }

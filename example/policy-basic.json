@@ -2,7 +2,7 @@
   "name": "basic policy",
   "checks": [
     {
-      "type": "http-check",
+      "type": "http",
       "url": "https://example.com"
     }
   ]
