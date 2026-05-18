@@ -1,0 +1,10 @@
+{
+  "name": "basic policy",
+  "checks": [
+    {
+      "type": "http",
+      "url": "https://example.com",
+      "method": "banana"
+    }
+  ]
+}

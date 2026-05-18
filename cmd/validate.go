@@ -30,7 +30,13 @@ This is useful for catching syntax errors or misconfigurations before attempting
 		}
 		defer fd.Close()
 
-		_, err = policy.ReadPolicy(filename)
+		p, err := policy.ReadPolicy(filename)
+		if err != nil {
+			errorMsg := color.New(color.FgRed).Sprintf("Policy format error: %v", err)
+			return errors.New(errorMsg)
+		}
+
+		err = p.Validate()
 		if err != nil {
 			errorMsg := color.New(color.FgRed).Sprintf("Policy validation failed: %v", err)
 			return errors.New(errorMsg)

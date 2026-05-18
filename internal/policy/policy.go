@@ -12,6 +12,16 @@ type Policy struct {
 	Checks []check.Check `json:"checks"`
 }
 
+func (p Policy) Validate() error {
+	for _, check := range p.Checks {
+		err := check.Value.Validate()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func ReadPolicy(filename string) (Policy, error) {
 	content, err := os.ReadFile(filename)
 
@@ -26,8 +36,4 @@ func ReadPolicy(filename string) (Policy, error) {
 	}
 
 	return policy, nil
-}
-
-func ValidatePolicy(filename string) error {
-	return nil
 }

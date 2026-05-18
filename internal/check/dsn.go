@@ -7,7 +7,12 @@ type DNSCheck struct {
 }
 
 func (DNSCheck) Type() string { return "dns" }
+
 func (c DNSCheck) Run() error {
 	fmt.Println("DNS check", c.Host)
+	return nil
+}
+
+func (c DNSCheck) Validate() error {
 	return nil
 }

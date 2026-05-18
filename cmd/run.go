@@ -36,6 +36,10 @@ You can specify the level of concurrency for running checks using the --concurre
 		}
 
 		// fmt.Fprintf(stdout, "Policy loaded: %+v\n", policy)
+		err = policy.Validate()
+		if err != nil {
+			return err
+		}
 
 		runner.Execute(policy.Checks, concurrency)
 		return nil

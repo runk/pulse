@@ -9,6 +9,7 @@ import (
 type CheckValue interface {
 	Type() string
 	Run() error
+	Validate() error
 }
 
 type Check struct {
