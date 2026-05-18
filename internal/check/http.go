@@ -11,6 +11,7 @@ type HTTPCheck struct {
 }
 
 func (HTTPCheck) Type() string { return "http" }
+
 func (c HTTPCheck) Run() error {
 	res, err := http.Get(c.URL)
 	if err != nil {

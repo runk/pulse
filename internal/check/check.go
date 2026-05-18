@@ -2,6 +2,7 @@ package check
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 
@@ -21,21 +22,21 @@ func (c *Check) UnmarshalJSON(data []byte) error {
 	}
 
 	if err := json.Unmarshal(data, &header); err != nil {
-		return err
+		return errors.Join(err, errors.New("Cannot read header"))
 	}
 
 	var value CheckValue
 	switch header.Type {
 	case "http":
-		value = HTTPCheck{}
+		value = &HTTPCheck{}
 	case "dns":
-		value = DNSCheck{}
+		value = &DNSCheck{}
 	default:
 		return fmt.Errorf("Unsupported check type: '%s'", header.Type)
 	}
 
-	if err := json.Unmarshal(data, &value); err != nil {
-		return err
+	if err := json.Unmarshal(data, value); err != nil {
+		return errors.Join(err, fmt.Errorf("Cannot read value of type '%s'", header.Type))
 	}
 
 	c.Value = value
