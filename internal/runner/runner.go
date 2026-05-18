@@ -9,8 +9,6 @@ import (
 )
 
 func Execute(checks []check.Check, concurrency uint16) {
-	fmt.Println(checks)
-
 	if concurrency == 0 {
 		// Otherwise we would have channel with no capacity
 		concurrency = 1
@@ -35,6 +33,8 @@ func Execute(checks []check.Check, concurrency uint16) {
 	wg.Wait()
 	close(errCh)
 
+	fmt.Println("")
+
 	errored := false
 	for err := range errCh {
 		errored = true
@@ -45,5 +45,8 @@ func Execute(checks []check.Check, concurrency uint16) {
 	if errored {
 		fmt.Println("Policy execution completed with errors.")
 		os.Exit(1)
+	} else {
+		fmt.Println("Policy execution completed - all checks passed.")
+		os.Exit(0)
 	}
 }
