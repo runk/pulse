@@ -3,7 +3,23 @@
   "checks": [
     {
       "type": "http",
-      "url": "https://example.com"
+      "method": "head",
+      "url": "https://example.com",
+      "assertions": [
+        {
+          "statusCode": {
+            "equals": 200
+          },
+          "headers": {
+            "Content-Type": {
+              "matches": "text/html.*"
+            }
+          },
+          "body": {
+            "contains": "This domain is for use in documentation examples without needing permission"
+          }
+        }
+      ]
     },
     {
       "type": "http",
