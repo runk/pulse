@@ -30,9 +30,17 @@
     },
     {
       "type": "dns",
-      "host": "example.com",
+      "host": "github.com",
       "assertions": [
-
+        {
+          "txt": {
+            "contains": "docusign=087098e3-3d46-47b7-9b4e-8a23028154cd"
+          },
+          "mx": {
+            "contains": "github-com.mail.protection.outlook.com.",
+            "length": { "equals": 1 }
+          }
+        }
       ]
     }
   ]
