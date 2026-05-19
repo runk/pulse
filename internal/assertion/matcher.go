@@ -87,10 +87,10 @@ type StringMatcher struct {
 }
 
 func (m StringMatcher) Match(input any) error {
-	value, ok := input.(string)
+	value, ok := asString(input)
 
 	if !ok {
-		return errors.New("input is not a string")
+		return fmt.Errorf("input is not a string, got: %T", input)
 	}
 
 	if m.Equals != nil && *m.Equals != value {
@@ -129,5 +129,18 @@ func asFloat64(input any) (float64, bool) {
 		return float64(v), true
 	default:
 		return 0, false
+	}
+}
+
+func asString(input any) (string, bool) {
+	switch v := input.(type) {
+	case string:
+		return v, true
+	case []byte:
+		return string(v), true
+	case *[]byte:
+		return string(*v), true
+	default:
+		return "", false
 	}
 }

@@ -19,8 +19,11 @@
           }
         },
         {
+          "statusCode": {
+            "between": [200, 299]
+          },
           "body": {
-            "matches": "<!doctype html><html lang=\"en\">*.</html>"
+            "matches": "<!doctype html><html lang=\"en\">.*</html>"
           }
         }
       ]
