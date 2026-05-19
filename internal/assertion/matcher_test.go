@@ -146,3 +146,56 @@ func TestStringMatcher(t *testing.T) {
 		})
 	}
 }
+
+func TestStringListMatcher(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		matcher  StringListMatcher
+		input    any
+		expected string
+	}{
+		{"noop pass", StringListMatcher{}, []string{"a", "b"}, ""},
+		{"empty list noop pass", StringListMatcher{}, []string{}, ""},
+		{"contains pass", StringListMatcher{Contains: new("a")}, []string{"a", "b"}, ""},
+		{"contains empty string pass", StringListMatcher{Contains: new("")}, []string{"", "b"}, ""},
+		{"contains fail", StringListMatcher{Contains: new("c")}, []string{"a", "b"}, "expected to have 'c'"},
+		{"contains empty list fail", StringListMatcher{Contains: new("a")}, []string{}, "expected to have 'a'"},
+		{"not contains pass", StringListMatcher{NotContains: new("c")}, []string{"a", "b"}, ""},
+		{"not contains empty list pass", StringListMatcher{NotContains: new("a")}, []string{}, ""},
+		{"not contains fail", StringListMatcher{NotContains: new("a")}, []string{"a", "b"}, "expected not to have 'a'"},
+		{"length equals pass", StringListMatcher{Length: &NumberMatcher{Equals: new(2.0)}}, []string{"a", "b"}, ""},
+		{"length equals zero pass", StringListMatcher{Length: &NumberMatcher{Equals: new(0.0)}}, []string{}, ""},
+		{"length equals fail", StringListMatcher{Length: &NumberMatcher{Equals: new(3.0)}}, []string{"a", "b"}, "expected 3 but got 2"},
+		{"length gte pass", StringListMatcher{Length: &NumberMatcher{Gte: new(2.0)}}, []string{"a", "b"}, ""},
+		{"length gte fail", StringListMatcher{Length: &NumberMatcher{Gte: new(3.0)}}, []string{"a", "b"}, "expected 2 to be greater than or equal to 3"},
+		{"any equals pass", StringListMatcher{Any: &StringMatcher{Equals: new("b")}}, []string{"a", "b"}, ""},
+		{"any contains pass", StringListMatcher{Any: &StringMatcher{Contains: new("b")}}, []string{"aa", "bb"}, ""},
+		{"any matches pass", StringListMatcher{Any: &StringMatcher{Matches: new(`\d+`)}}, []string{"abc", "123"}, ""},
+		{"any fail", StringListMatcher{Any: &StringMatcher{Equals: new("c")}}, []string{"a", "b"}, "neither of values matched against checks"},
+		{"any empty list fail", StringListMatcher{Any: &StringMatcher{Equals: new("a")}}, []string{}, "neither of values matched against checks"},
+		{"all equals pass", StringListMatcher{All: &StringMatcher{Equals: new("a")}}, []string{"a", "a"}, ""},
+		{"all contains pass", StringListMatcher{All: &StringMatcher{Contains: new("a")}}, []string{"aa", "ab"}, ""},
+		{"all matches pass", StringListMatcher{All: &StringMatcher{Matches: new(`^[a-z]+$`)}}, []string{"aa", "bb"}, ""},
+		{"all fail", StringListMatcher{All: &StringMatcher{Equals: new("a")}}, []string{"a", "b"}, "not all values matched against checks"},
+		{"all empty list pass", StringListMatcher{All: &StringMatcher{Equals: new("a")}}, []string{}, ""},
+		{"combined pass", StringListMatcher{Contains: new("a"), NotContains: new("c"), Length: &NumberMatcher{Equals: new(2.0)}, Any: &StringMatcher{Equals: new("b")}, All: &StringMatcher{Matches: new(`^[ab]$`)}}, []string{"a", "b"}, ""},
+		{"combined stops on contains fail", StringListMatcher{Contains: new("c"), Any: &StringMatcher{Equals: new("a")}}, []string{"a", "b"}, "expected to have 'c'"},
+		{"input string is not a string list", StringListMatcher{}, "a", "input is not a list of strings, got: string"},
+		{"input nil is not a string list", StringListMatcher{}, nil, "input is not a list of strings, got: <nil>"},
+		{"input []byte is not a string list", StringListMatcher{}, []byte("abc"), "input is not a list of strings, got: []uint8"},
+		{"input []any is not a string list", StringListMatcher{}, []any{"a"}, "input is not a list of strings, got: []interface {}"},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.name, func(t *testing.T) {
+			actual := ""
+			if err := scenario.matcher.Match(scenario.input); err != nil {
+				actual = err.Error()
+			}
+
+			if actual != scenario.expected {
+				t.Errorf("Want '%s' but got '%s'", scenario.expected, actual)
+			}
+		})
+	}
+}

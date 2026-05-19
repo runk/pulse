@@ -142,11 +142,9 @@ func (m StringListMatcher) Match(input any) error {
 	}
 
 	if m.Length != nil {
-	if m.Length != nil {
 		if err := m.Length.Match(len(values)); err != nil {
 			return err
 		}
-	}
 	}
 
 	pass := false
@@ -159,7 +157,7 @@ func (m StringListMatcher) Match(input any) error {
 			}
 		}
 		if !pass {
-			return errors.New("not all values matched against checks")
+			return errors.New("neither of values matched against checks")
 		}
 	}
 

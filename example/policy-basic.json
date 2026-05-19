@@ -27,6 +27,13 @@
           }
         }
       ]
+    },
+    {
+      "type": "dns",
+      "host": "example.com",
+      "assertions": [
+
+      ]
     }
   ]
 }
