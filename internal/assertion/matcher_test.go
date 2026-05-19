@@ -127,10 +127,10 @@ func TestStringMatcher(t *testing.T) {
 		{"matches empty pass", StringMatcher{Matches: new("")}, "abc", ""},
 		{"matches fail", StringMatcher{Matches: new(`abc-\d+`)}, "abc", "expected to match 'abc-\\d+'"},
 		{"matches invalid regex", StringMatcher{Matches: new("[")}, "abc", "regular expression is invalid: error parsing regexp: missing closing ]: `[`"},
-		{"input int is not a string", StringMatcher{Equals: new("abc")}, 1, "input is not a string"},
-		{"input bool is not a string", StringMatcher{Equals: new("abc")}, true, "input is not a string"},
-		{"input nil is not a string", StringMatcher{Equals: new("abc")}, nil, "input is not a string"},
-		{"input slice is not a string", StringMatcher{Equals: new("abc")}, []string{"abc"}, "input is not a string"},
+		{"input int is not a string", StringMatcher{Equals: new("abc")}, 1, "input is not a string, got: int"},
+		{"input bool is not a string", StringMatcher{Equals: new("abc")}, true, "input is not a string, got: bool"},
+		{"input nil is not a string", StringMatcher{Equals: new("abc")}, nil, "input is not a string, got: <nil>"},
+		{"input slice is not a string", StringMatcher{Equals: new("abc")}, []string{"abc"}, "input is not a string, got: []string"},
 	}
 
 	for _, scenario := range scenarios {

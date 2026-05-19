@@ -119,6 +119,68 @@ func (m StringMatcher) Match(input any) error {
 	return nil
 }
 
+type StringListMatcher struct {
+	Contains    *string        `json:"contains,omitempty"`
+	NotContains *string        `json:"notContains,omitempty"`
+	Length      *NumberMatcher `json:"length,omitempty"`
+	Any         *StringMatcher `json:"any,omitempty"`
+	All         *StringMatcher `json:"all,omitempty"`
+}
+
+func (m StringListMatcher) Match(input any) error {
+	values, ok := input.([]string)
+	if !ok {
+		return fmt.Errorf("input is not a list of strings, got: %T", input)
+	}
+
+	if m.Contains != nil && !slices.Contains(values, *m.Contains) {
+		return fmt.Errorf("expected to have '%s'", *m.Contains)
+	}
+
+	if m.NotContains != nil && slices.Contains(values, *m.NotContains) {
+		return fmt.Errorf("expected not to have '%s'", *m.NotContains)
+	}
+
+	if m.Length != nil {
+	if m.Length != nil {
+		if err := m.Length.Match(len(values)); err != nil {
+			return err
+		}
+	}
+	}
+
+	pass := false
+	if m.Any != nil {
+		for _, value := range values {
+			err := m.Any.Match(value)
+			if err == nil {
+				pass = true
+				break
+			}
+		}
+		if !pass {
+			return errors.New("not all values matched against checks")
+		}
+	}
+
+	if m.All != nil {
+		pass = true
+		for _, value := range values {
+			err := m.All.Match(value)
+			if err != nil {
+				pass = false
+				break
+			}
+		}
+
+		if !pass {
+			return errors.New("not all values matched against checks")
+		}
+	}
+
+	return nil
+}
+
 func asFloat64(input any) (float64, bool) {
 	switch v := input.(type) {
 	case float64:
