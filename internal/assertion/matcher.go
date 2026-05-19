@@ -3,6 +3,7 @@ package assertion
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"slices"
 )
 
@@ -78,13 +79,42 @@ func (m NumberMatcher) Match(input any) error {
 }
 
 type StringMatcher struct {
-	Equals    string `json:"equals,omitempty"`
-	NotEquals string `json:"notEquals,omitempty"`
-	Contains  string `json:"contains,omitempty"`
-	Matches   string `json:"matches,omitempty"`
+	Equals    *string `json:"equals,omitempty"`
+	NotEquals *string `json:"notEquals,omitempty"`
+	Contains  *string `json:"contains,omitempty"`
+	Matches   *string `json:"matches,omitempty"`
 }
 
 func (m StringMatcher) Match(input any) error {
+	value, ok := input.(string)
+
+	if !ok {
+		return errors.New("input is not a string")
+	}
+
+	if m.Equals != nil && *m.Equals != value {
+		return fmt.Errorf("expected '%s' to be '%s'", value, *m.Equals)
+	}
+
+	if m.NotEquals != nil && *m.NotEquals == value {
+		return fmt.Errorf("expected '%s' not to be '%s'", value, *m.NotEquals)
+	}
+
+	if m.Contains != nil && !strings.Contains(value, *m.Contains) {
+		return fmt.Errorf("expected to contain '%s'", *m.Contains)
+	}
+
+	if m.Matches != nil {
+		re, err := regexp.Compile(*m.Matches)
+		if err != nil {
+			return fmt.Errorf("regular expression is invalid: %v", err)
+		}
+
+		if !re.MatchString(value) {
+			return fmt.Errorf("expected to match '%s'", *m.Matches)
+		}
+	}
+
 	return nil
 }
 

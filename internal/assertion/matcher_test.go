@@ -101,6 +101,41 @@ func TestNumberMatcher(t *testing.T) {
 	}
 }
 
+func TestStringMatcher(t *testing.T) {
+	scenarios := []struct {
+		name     string
+		matcher  StringMatcher
+		input    any
+		expected string
+	}{
+		{"equals pass", StringMatcher{Equals: stringPtr("abc")}, "abc", ""},
+		{"equals fail", StringMatcher{Equals: stringPtr("abc")}, "xyz", "expected 'xyz' to be 'abc'"},
+		{"not equals pass", StringMatcher{NotEquals: stringPtr("abc")}, "xyz", ""},
+		{"not equals fail", StringMatcher{NotEquals: stringPtr("abc")}, "abc", "expected 'abc' not to be 'abc'"},
+		{"contains pass", StringMatcher{Contains: stringPtr("a")}, "abc", ""},
+		{"contains fail", StringMatcher{Contains: stringPtr("a")}, "xyz", "expected to contain 'a'"},
+		{"matches pass", StringMatcher{Matches: stringPtr("abc-[\\d+]")}, "abc-123", ""},
+		{"matches fail", StringMatcher{Matches: stringPtr("abc-[\\d+]")}, "abc", "expected to match 'abc-[\\d+]'"},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.name, func(t *testing.T) {
+			actual := ""
+			if err := scenario.matcher.Match(scenario.input); err != nil {
+				actual = err.Error()
+			}
+
+			if actual != scenario.expected {
+				t.Errorf("Want '%s' but got '%s'", scenario.expected, actual)
+			}
+		})
+	}
+}
+
 func floatPtr(v float64) *float64 {
 	return &v
+}
+
+func stringPtr(s string) *string {
+	return &s
 }
