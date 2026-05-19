@@ -32,6 +32,8 @@ func (c *Check) UnmarshalJSON(data []byte) error {
 		value = &HTTPCheck{}
 	case "dns":
 		value = &DNSCheck{}
+	case "tls":
+		value = &TLSCheck{}
 	default:
 		return fmt.Errorf("Unsupported check type: '%s'", header.Type)
 	}

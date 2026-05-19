@@ -44,6 +44,7 @@ Each check must include a `type`. Supported types are:
 
 - `http`
 - `dns`
+- `tls`
 
 ## Examples
 
@@ -121,6 +122,33 @@ List matchers are useful for DNS records. `contains` and `notContains` match exa
           "matches": ".*\\.iana-servers\\.net\\."
         }
       }
+    }
+  ]
+}
+```
+
+### TLS Certificate And Protocols
+
+```json
+{
+  "name": "tls example",
+  "checks": [
+    {
+      "type": "tls",
+      "host": "example.com",
+      "assertions": [
+        {
+          "daysRemaining": {
+            "gte": 14
+          },
+          "supportedVersions": {
+            "contains": "TLS 1.3"
+          },
+          "supportedCiphers": {
+            "notContains": "TLS_RSA_WITH_3DES_EDE_CBC_SHA"
+          }
+        }
+      ]
     }
   ]
 }
@@ -223,6 +251,57 @@ DNS assertion fields:
 - `a`: string list matcher applied to `net.LookupAddr(host)` results.
 
 Note: the current `a` implementation uses reverse lookup via `net.LookupAddr`, so it expects an address-like host and returns names. For forward A/AAAA address lookup, the implementation should use `net.LookupHost` or `net.LookupIP`.
+
+### TLS Check
+
+```json
+{
+  "type": "tls",
+  "host": "example.com",
+  "port": 443,
+  "assertions": []
+}
+```
+
+Fields:
+
+- `type`: must be `tls`.
+- `host`: required. Used as both the TCP host and TLS server name.
+- `port`: optional. Defaults to `443`.
+- `assertions`: optional list of TLS assertion objects.
+
+TLS assertion object:
+
+```json
+{
+  "daysRemaining": {
+    "gte": 14
+  },
+  "supportedVersions": {
+    "contains": "TLS 1.3"
+  },
+  "supportedCiphers": {
+    "notContains": "TLS_RSA_WITH_3DES_EDE_CBC_SHA"
+  }
+}
+```
+
+TLS assertion fields:
+
+- `daysRemaining`: number matcher applied to the leaf certificate's remaining lifetime in whole days.
+- `supportedVersions`: string list matcher applied to supported TLS protocol versions.
+- `supportedCiphers`: string list matcher applied to supported TLS cipher suite names.
+
+TLS version names are:
+
+- `TLS 1.0`
+- `TLS 1.1`
+- `TLS 1.2`
+- `TLS 1.3`
+
+Cipher names use Go's `crypto/tls` cipher suite names, such as `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`.
+
+Note: Go can force individual cipher suites for TLS 1.0 through TLS 1.2. TLS 1.3 cipher suites are not configurable in the same way, so Pulse reports the negotiated TLS 1.3 cipher when TLS 1.3 is supported.
 
 ## Matcher Reference
 
@@ -329,7 +408,7 @@ This is an informal JSON schema matching the current implementation:
   "name": "string",
   "checks": [
     {
-      "type": "http | dns"
+      "type": "http | dns | tls"
     }
   ]
 }
@@ -368,6 +447,23 @@ DNS check:
       "txt": "StringListMatcher",
       "ns": "StringListMatcher",
       "a": "StringListMatcher"
+    }
+  ]
+}
+```
+
+TLS check:
+
+```json
+{
+  "type": "tls",
+  "host": "string, required",
+  "port": "number, optional",
+  "assertions": [
+    {
+      "daysRemaining": "NumberMatcher",
+      "supportedVersions": "StringListMatcher",
+      "supportedCiphers": "StringListMatcher"
     }
   ]
 }
