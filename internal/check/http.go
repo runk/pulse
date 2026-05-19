@@ -96,7 +96,7 @@ func (c HTTPCheck) Run() error {
 	for _, assertion := range c.Assertions {
 		fmt.Println(assertion)
 		if assertion.StatusCode != nil {
-			fmt.Println("ass")
+			fmt.Println("assertion")
 			err := assertion.StatusCode.Match(status)
 			if err != nil {
 				errs = append(errs, err)

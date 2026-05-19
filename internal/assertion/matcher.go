@@ -3,6 +3,7 @@ package assertion
 import (
 	"errors"
 	"fmt"
+	"slices"
 )
 
 type Matcher interface {
@@ -10,28 +11,15 @@ type Matcher interface {
 }
 
 type NumberMatcher struct {
-	Equals    float64   `json:"equals,omitempty"`
-	NotEquals float64   `json:"notEquals,omitempty"`
-	Gt        float64   `json:"gt,omitempty"`
-	Gte       float64   `json:"gte,omitempty"`
-	Lt        float64   `json:"lt,omitempty"`
-	Lte       float64   `json:"lte,omitempty"`
+	Equals    *float64  `json:"equals,omitempty"`
+	NotEquals *float64  `json:"notEquals,omitempty"`
+	Gt        *float64  `json:"gt,omitempty"`
+	Gte       *float64  `json:"gte,omitempty"`
+	Lt        *float64  `json:"lt,omitempty"`
+	Lte       *float64  `json:"lte,omitempty"`
 	In        []float64 `json:"in,omitempty"`
 	NotIn     []float64 `json:"notIn,omitempty"`
 	Between   []float64 `json:"between,omitempty"`
-}
-
-func asFloat64(input any) (float64, bool) {
-	switch v := input.(type) {
-	case float64:
-		return v, true
-	case float32:
-		return float64(v), true
-	case int:
-		return float64(v), true
-	default:
-		return 0, false
-	}
 }
 
 func (m NumberMatcher) Match(input any) error {
@@ -40,15 +28,49 @@ func (m NumberMatcher) Match(input any) error {
 		return errors.New("input is not a number")
 	}
 
-	if m.Equals != 0 {
-		if value != m.Equals {
-			return fmt.Errorf("expected %v but got %v", m.Equals, value)
-		}
+	if m.Equals != nil && *m.Equals != value {
+		return fmt.Errorf("expected %v but got %v", *m.Equals, value)
 	}
 
-	if m.NotEquals != 0 {
-		if value == m.NotEquals {
-			return fmt.Errorf("expected %v not to be %v", value, m.NotEquals)
+	if m.NotEquals != nil && *m.NotEquals == value {
+		return fmt.Errorf("expected %v not to be %v", value, *m.NotEquals)
+	}
+
+	if m.Gt != nil && value <= *m.Gt {
+		return fmt.Errorf("expected %v to be greater than %v", value, *m.Gt)
+	}
+
+	if m.Gte != nil && value < *m.Gte {
+		return fmt.Errorf("expected %v to be greater than or equal to %v", value, *m.Gte)
+	}
+
+	if m.Lt != nil && value >= *m.Lt {
+		return fmt.Errorf("expected %v to be less than %v", value, *m.Lt)
+	}
+
+	if m.Lte != nil && value > *m.Lte {
+		return fmt.Errorf("expected %v to be less than or equal to %v", value, *m.Lte)
+	}
+
+	if len(m.In) > 0 && !slices.Contains(m.In, value) {
+		return fmt.Errorf("expected %v to be one of %v", value, m.In)
+	}
+
+	if len(m.NotIn) > 0 && slices.Contains(m.NotIn, value) {
+		return fmt.Errorf("expected %v not to be one of %v", value, m.NotIn)
+	}
+
+	if len(m.Between) > 0 {
+		if len(m.Between) != 2 {
+			return fmt.Errorf("between requires exactly 2 values, got %v", len(m.Between))
+		}
+
+		if m.Between[0] > m.Between[1] {
+			return fmt.Errorf("between lower bound %v is greater than upper bound %v", m.Between[0], m.Between[1])
+		}
+
+		if value < m.Between[0] || value > m.Between[1] {
+			return fmt.Errorf("expected %v to be between %v and %v", value, m.Between[0], m.Between[1])
 		}
 	}
 
@@ -64,4 +86,17 @@ type StringMatcher struct {
 
 func (m StringMatcher) Match(input any) error {
 	return nil
+}
+
+func asFloat64(input any) (float64, bool) {
+	switch v := input.(type) {
+	case float64:
+		return v, true
+	case float32:
+		return float64(v), true
+	case int:
+		return float64(v), true
+	default:
+		return 0, false
+	}
 }

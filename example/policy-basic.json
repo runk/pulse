@@ -7,7 +7,7 @@
       "assertions": [
         {
           "statusCode": {
-            "equals": 201
+            "equals": 200
           },
           "headers": {
             "Content-Type": {
