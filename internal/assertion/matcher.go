@@ -134,11 +134,11 @@ func (m StringListMatcher) Match(input any) error {
 	}
 
 	if m.Contains != nil && !slices.Contains(values, *m.Contains) {
-		return fmt.Errorf("expected to have '%s'", *m.Contains)
+		return fmt.Errorf("expected to have '%s' in the list ['%s']", *m.Contains, strings.Join(values, "', '"))
 	}
 
 	if m.NotContains != nil && slices.Contains(values, *m.NotContains) {
-		return fmt.Errorf("expected not to have '%s'", *m.NotContains)
+		return fmt.Errorf("expected not to have '%s' in the list ['%s']", *m.NotContains, strings.Join(values, "', '"))
 	}
 
 	if m.Length != nil {

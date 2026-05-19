@@ -1,0 +1,59 @@
+{
+  "name": "basic policy",
+  "checks": [
+    {
+      "type": "http",
+      "url": "https://example.com",
+      "assertions": [
+        {
+          "statusCode": {
+            "equals": 200
+          },
+          "headers": {
+            "Content-Type": {
+              "matches": "text/html.*"
+            }
+          },
+          "body": {
+            "contains": "This domain is for use in documentation examples without needing permission"
+          }
+        },
+        {
+          "statusCode": {
+            "between": [200, 299]
+          },
+          "body": {
+            "matches": "<!doctype html><html lang=\"en\">.*</html>"
+          }
+        }
+      ]
+    },
+    {
+      "type": "dns",
+      "host": "github.com",
+      "assertions": [
+        {
+          "txt": {
+            "contains": "docusign=087098e3-3d46-47b7-9b4e-8a23028154cd"
+          },
+          "mx": {
+            "contains": "github-com.mail.protection.outlook.com.",
+            "length": { "equals": 1 }
+          },
+          "ns": {
+            "contains": "ns-421.awsdns-52.com.",
+            "any": {
+              "matches": "ns-\\d+[.]awsdns-\\d+[.]com"
+            }
+          },
+          "a": {
+            "contains": "4.237.22.38",
+            "all": {
+              "matches": "\\d+[.]\\d+[.]\\d+[.]\\d+"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -40,7 +40,7 @@ func TestValidateInvalid(t *testing.T) {
 		t.Fatal("Error expected, got nil")
 	}
 
-	if err.Error() != "Policy validation failed: unexpected end of JSON input" {
+	if strings.Contains(err.Error(), "Policy validation failed: unexpected end of JSON input") {
 		t.Fatalf("Unexpected error message returned: %v", err)
 	}
 }

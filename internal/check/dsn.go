@@ -42,7 +42,7 @@ func (c DNSCheck) Run() error {
 		checkRecords(host, net.LookupMX, assertion.MX, &errs)
 		checkRecords(host, net.LookupTXT, assertion.TXT, &errs)
 		checkRecords(host, net.LookupNS, assertion.NS, &errs)
-		checkRecords(host, net.LookupAddr, assertion.A, &errs)
+		checkRecords(host, net.LookupHost, assertion.A, &errs)
 	}
 
 	if len(errs) > 0 {
@@ -73,6 +73,7 @@ func checkRecords[T any](
 	records, err := lookup(host)
 	if err != nil {
 		*errs = append(*errs, err)
+		return
 	}
 
 	inputs := make([]string, len(records))
@@ -86,7 +87,7 @@ func checkRecords[T any](
 		case *net.NS:
 			inputs[i] = v.Host
 		default:
-			*errs = append(*errs, fmt.Errorf("unsupported record type: %T", record))
+			*errs = append(*errs, fmt.Errorf("Unsupported type for record matching: %T", record))
 			return
 		}
 	}
