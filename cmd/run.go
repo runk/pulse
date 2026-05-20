@@ -10,6 +10,7 @@ import (
 
 var (
 	concurrency uint16
+	timeout     uint32
 )
 
 // runCmd represents the run command
@@ -41,7 +42,12 @@ You can specify the level of concurrency for running checks using the --concurre
 			return err
 		}
 
-		runner.Execute(policy.Checks, concurrency)
+		// currently Execute will send exit signal - it should change
+		err = runner.Execute(policy.Checks, concurrency, timeout)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	},
 }
@@ -60,4 +66,5 @@ func init() {
 	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 	runCmd.Flags().Uint16VarP(&concurrency, "concurrency", "c", 4, "Level of concurrency")
+	runCmd.Flags().Uint32VarP(&timeout, "timeout", "t", 3000, "Timeout for each check in milliseconds")
 }

@@ -1,6 +1,7 @@
 package check
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -23,7 +24,7 @@ type DNSCheck struct {
 
 func (DNSCheck) Type() string { return "dns" }
 
-func (c DNSCheck) Run() error {
+func (c DNSCheck) Run(_ context.Context) error {
 
 	host := c.Host
 	errs := []error{}

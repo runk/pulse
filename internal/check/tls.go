@@ -1,6 +1,7 @@
 package check
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -39,7 +40,7 @@ func (c *TLSCheck) Validate() error {
 	return nil
 }
 
-func (c TLSCheck) Run() error {
+func (c TLSCheck) Run(_ context.Context) error {
 	addr := net.JoinHostPort(c.Host, strconv.Itoa(int(c.Port)))
 	needsDaysRemaining := len(c.Assertions) == 0
 	needsSupportedVersions := false

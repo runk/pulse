@@ -1,6 +1,7 @@
 package check
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -8,7 +9,7 @@ import (
 
 type CheckValue interface {
 	Type() string
-	Run() error
+	Run(ctx context.Context) error
 	Validate() error
 }
 

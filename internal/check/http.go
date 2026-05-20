@@ -2,6 +2,7 @@ package check
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -64,7 +65,7 @@ func (c *HTTPCheck) Validate() error {
 	return nil
 }
 
-func (c HTTPCheck) Run() error {
+func (c HTTPCheck) Run(_ context.Context) error {
 	body := bytes.NewReader(c.Body)
 
 	req, err := http.NewRequest(c.Method, c.URL, body)
