@@ -65,10 +65,10 @@ func (c *HTTPCheck) Validate() error {
 	return nil
 }
 
-func (c HTTPCheck) Run(_ context.Context) error {
+func (c HTTPCheck) Run(ctx context.Context) error {
 	body := bytes.NewReader(c.Body)
 
-	req, err := http.NewRequest(c.Method, c.URL, body)
+	req, err := http.NewRequestWithContext(ctx, c.Method, c.URL, body)
 	if err != nil {
 		return err
 	}
