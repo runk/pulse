@@ -1,6 +1,7 @@
 package check
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -39,7 +40,7 @@ func (c *TLSCheck) Validate() error {
 	return nil
 }
 
-func (c TLSCheck) Run() error {
+func (c TLSCheck) Run(ctx context.Context) error {
 	addr := net.JoinHostPort(c.Host, strconv.Itoa(int(c.Port)))
 	needsDaysRemaining := len(c.Assertions) == 0
 	needsSupportedVersions := false
@@ -53,7 +54,7 @@ func (c TLSCheck) Run() error {
 
 	var daysRemaining int
 	if needsDaysRemaining {
-		conn, err := dialTLS(addr, c.Host, 0, 0, nil)
+		conn, err := dialTLS(ctx, addr, c.Host, 0, 0, nil)
 		if err != nil {
 			return err
 		}
@@ -67,14 +68,21 @@ func (c TLSCheck) Run() error {
 		daysRemaining = daysUntil(state.PeerCertificates[0].NotAfter, time.Now())
 	}
 
+	var err error
 	var supportedVersions []string
 	if needsSupportedVersions {
-		supportedVersions = supportedTLSVersions(addr, c.Host)
+		supportedVersions, err = supportedTLSVersions(ctx, addr, c.Host)
+		if err != nil {
+			return err
+		}
 	}
 
 	var supportedCiphers []string
 	if needsSupportedCiphers {
-		supportedCiphers = supportedTLSCiphers(addr, c.Host)
+		supportedCiphers, err = supportedTLSCiphers(ctx, addr, c.Host)
+		if err != nil {
+			return err
+		}
 	}
 
 	errs := []error{}
@@ -105,25 +113,33 @@ func (c TLSCheck) Run() error {
 	return nil
 }
 
-func dialTLS(addr, serverName string, minVersion, maxVersion uint16, cipherSuites []uint16) (*tls.Conn, error) {
-	dialer := &net.Dialer{Timeout: 10 * time.Second}
-	config := &tls.Config{
-		ServerName:         serverName,
-		InsecureSkipVerify: true,
-		MinVersion:         minVersion,
-		MaxVersion:         maxVersion,
-		CipherSuites:       cipherSuites,
+func dialTLS(ctx context.Context, addr, serverName string, minVersion, maxVersion uint16, cipherSuites []uint16) (*tls.Conn, error) {
+	dialer := &tls.Dialer{
+		NetDialer: &net.Dialer{},
+		Config: &tls.Config{
+			ServerName:         serverName,
+			InsecureSkipVerify: true,
+			MinVersion:         minVersion,
+			MaxVersion:         maxVersion,
+			CipherSuites:       cipherSuites,
+		},
 	}
 
-	conn, err := tls.DialWithDialer(dialer, "tcp", addr, config)
+	conn, err := dialer.DialContext(ctx, "tcp", addr)
 	if err != nil {
 		return nil, err
 	}
 
-	return conn, nil
+	tlsConn, ok := conn.(*tls.Conn)
+	if !ok {
+		_ = conn.Close()
+		return nil, fmt.Errorf("wanted *tls.Conn, but got %T", conn)
+	}
+
+	return tlsConn, nil
 }
 
-func supportedTLSVersions(addr, serverName string) []string {
+func supportedTLSVersions(ctx context.Context, addr, serverName string) ([]string, error) {
 	versions := []uint16{
 		tls.VersionTLS10,
 		tls.VersionTLS11,
@@ -133,8 +149,14 @@ func supportedTLSVersions(addr, serverName string) []string {
 
 	supported := []string{}
 	for _, version := range versions {
-		conn, err := dialTLS(addr, serverName, version, version, nil)
+		conn, err := dialTLS(ctx, addr, serverName, version, version, nil)
 		if err != nil {
+			// This error could be one of two
+			// 1. version didn't work - we accept those as normal testing behaviour
+			// 2. context errors - should exit immediately
+			if ctx.Err() != nil {
+				return nil, ctx.Err()
+			}
 			continue
 		}
 
@@ -142,17 +164,23 @@ func supportedTLSVersions(addr, serverName string) []string {
 		_ = conn.Close()
 	}
 
-	return supported
+	return supported, nil
 }
 
-func supportedTLSCiphers(addr, serverName string) []string {
+func supportedTLSCiphers(ctx context.Context, addr, serverName string) ([]string, error) {
 	seen := map[uint16]bool{}
 	supported := []string{}
 
 	for _, suite := range append(tls.CipherSuites(), tls.InsecureCipherSuites()...) {
 		for _, version := range []uint16{tls.VersionTLS10, tls.VersionTLS11, tls.VersionTLS12} {
-			conn, err := dialTLS(addr, serverName, version, version, []uint16{suite.ID})
+			conn, err := dialTLS(ctx, addr, serverName, version, version, []uint16{suite.ID})
 			if err != nil {
+				// This error could be one of two
+				// 1. version/suite didn't work - we accept those as normal testing behaviour
+				// 2. context errors - should exit immediately
+				if ctx.Err() != nil {
+					return nil, ctx.Err()
+				}
 				continue
 			}
 
@@ -166,16 +194,18 @@ func supportedTLSCiphers(addr, serverName string) []string {
 		}
 	}
 
-	conn, err := dialTLS(addr, serverName, tls.VersionTLS13, tls.VersionTLS13, nil)
+	conn, err := dialTLS(ctx, addr, serverName, tls.VersionTLS13, tls.VersionTLS13, nil)
 	if err == nil {
 		state := conn.ConnectionState()
 		if !seen[state.CipherSuite] {
 			supported = append(supported, tlsCipherSuiteName(state.CipherSuite))
 		}
 		_ = conn.Close()
+	} else if ctx.Err() != nil {
+		return nil, ctx.Err()
 	}
 
-	return supported
+	return supported, nil
 }
 
 func daysUntil(future, now time.Time) int {

@@ -1,17 +1,22 @@
 package runner
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/runk/pulse/internal/check"
 )
 
-func Execute(checks []check.Check, concurrency uint16) {
-	if concurrency == 0 {
-		// Otherwise we would have channel with no capacity
-		concurrency = 1
+func Execute(checks []check.Check, concurrency uint16, timeout uint32) error {
+	if timeout < 10 {
+		return fmt.Errorf("Timeout should be >= 10ms, got: %dms", timeout)
+	}
+
+	if concurrency < 1 {
+		return fmt.Errorf("Concurrency should be at least 1, got: %d", concurrency)
 	}
 
 	sem := make(chan struct{}, concurrency)
@@ -22,9 +27,12 @@ func Execute(checks []check.Check, concurrency uint16) {
 		sem <- struct{}{}
 
 		wg.Go(func() {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Millisecond)
+
+			defer cancel()
 			defer func() { <-sem }()
 
-			if err := check.Value.Run(); err != nil {
+			if err := check.Value.Run(ctx); err != nil {
 				errCh <- err
 			}
 		})
@@ -49,4 +57,6 @@ func Execute(checks []check.Check, concurrency uint16) {
 		fmt.Println("Policy execution completed - all checks passed.")
 		os.Exit(0)
 	}
+
+	return nil
 }
