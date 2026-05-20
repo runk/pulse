@@ -1,7 +1,7 @@
 ## Backlog
 
 0. [x] CI
-1. [ ] Timeouts
+1. [x] Timeouts
 2. [ ] Return results from the runner - delegate printing to the caller, so that we can print in different formats (e.g. JSON). Same with exit code.
 3. [ ] Structured output (with adapters)
 4. [ ] Yaml policy format support
