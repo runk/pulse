@@ -62,15 +62,15 @@
         {
           "daysRemaining": { "Gt": 1 },
           "supportedVersions": {
-            "Contains": "TLS 1.2"
+            "contains": "TLS 1.2"
           },
           "supportedCiphers": {
-            "Contains": "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA"
+            "contains": "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA"
           }
         },
         {
           "supportedVersions": {
-            "NotContains": "TLS 1.1"
+            "notContains": "TLS 1.1"
           }
         }
       ]
