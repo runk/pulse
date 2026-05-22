@@ -36,19 +36,28 @@ You can specify the level of concurrency for running checks using the --concurre
 			return fmt.Errorf("Error reading policy: %w", err)
 		}
 
-		// fmt.Fprintf(stdout, "Policy loaded: %+v\n", policy)
 		err = policy.Validate()
 		if err != nil {
 			return err
 		}
 
-		// currently Execute will send exit signal - it should change
-		err = runner.Execute(policy.Checks, concurrency, timeout)
-		if err != nil {
-			return err
+		errs := make(chan error, 1)
+		results := make(chan runner.Result, len(policy.Checks))
+
+		go func() {
+			defer close(results)
+			errs <- runner.Execute(policy.Checks, results, concurrency, timeout)
+		}()
+
+		for result := range results {
+			if result.Ok {
+				fmt.Printf("[%s] Passed\n", result.Type)
+			} else {
+				fmt.Printf("[%s] Failed: %s\n", result.Type, result.Message)
+			}
 		}
 
-		return nil
+		return <-errs
 	},
 }
 

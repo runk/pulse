@@ -3,14 +3,20 @@ package runner
 import (
 	"context"
 	"fmt"
-	"os"
 	"sync"
 	"time"
 
 	"github.com/runk/pulse/internal/check"
 )
 
-func Execute(checks []check.Check, concurrency uint16, timeout uint32) error {
+type Result struct {
+	Type    string
+	Subject string
+	Ok      bool
+	Message string
+}
+
+func Execute(checks []check.Check, results chan Result, concurrency uint16, timeout uint32) error {
 	if timeout < 10 {
 		return fmt.Errorf("Timeout should be >= 10ms, got: %dms", timeout)
 	}
@@ -20,7 +26,6 @@ func Execute(checks []check.Check, concurrency uint16, timeout uint32) error {
 	}
 
 	sem := make(chan struct{}, concurrency)
-	errCh := make(chan error, len(checks))
 	wg := sync.WaitGroup{}
 
 	for _, check := range checks {
@@ -33,30 +38,21 @@ func Execute(checks []check.Check, concurrency uint16, timeout uint32) error {
 			defer func() { <-sem }()
 
 			if err := check.Value.Run(ctx); err != nil {
-				errCh <- err
+				results <- Result{
+					Type:    check.Value.Type(),
+					Ok:      false,
+					Message: err.Error(),
+				}
+			} else {
+				results <- Result{
+					Type: check.Value.Type(),
+					Ok:   true,
+				}
 			}
 		})
 	}
 
 	wg.Wait()
-	close(errCh)
-
-	fmt.Println("")
-
-	errored := false
-	for err := range errCh {
-		errored = true
-		// at least 1
-		fmt.Printf("Error: %s\n", err)
-	}
-
-	if errored {
-		fmt.Println("Policy execution completed with errors.")
-		os.Exit(1)
-	} else {
-		fmt.Println("Policy execution completed - all checks passed.")
-		os.Exit(0)
-	}
 
 	return nil
 }
