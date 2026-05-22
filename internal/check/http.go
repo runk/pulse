@@ -82,20 +82,16 @@ func (c HTTPCheck) Run(ctx context.Context) error {
 
 	status := res.StatusCode
 
-	fmt.Printf("%s: %d\n", c.URL, res.StatusCode)
-
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
 		return err
 	}
 
-	if status < 200 || status >= 300 {
-		return fmt.Errorf("%s returned non 2xx status: %d", c.URL, status)
-	}
-
+	statusCodeChecked := false
 	errs := []error{}
 	for _, assertion := range c.Assertions {
 		if assertion.StatusCode != nil {
+			statusCodeChecked = true
 			err := assertion.StatusCode.Match(status)
 			if err != nil {
 				errs = append(errs, err)
@@ -119,9 +115,17 @@ func (c HTTPCheck) Run(ctx context.Context) error {
 		}
 	}
 
+	if !statusCodeChecked && (status < 200 || status >= 300) {
+		return fmt.Errorf("returned non 2xx status: %d", status)
+	}
+
 	if len(errs) > 0 {
 		return errors.Join(errs...)
 	}
 
 	return nil
+}
+
+func (c HTTPCheck) Subject() string {
+	return fmt.Sprintf("%s %s", c.Method, c.URL)
 }

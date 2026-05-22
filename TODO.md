@@ -2,8 +2,10 @@
 
 0. [x] CI
 1. [x] Timeouts
-2. [ ] Return results from the runner - delegate printing to the caller, so that we can print in different formats (e.g. JSON). Same with exit code.
-3. [ ] Structured output (with adapters)
+2. [x] Return results from the runner - delegate printing to the caller. Same with exit code.
+       2.1 [ ] Different formatters - JSON/xml
+3. [x] Structured output (with adapters)
+
 4. [ ] Yaml policy format support
 5. [ ] More checks:
    - Arbitrary command execution

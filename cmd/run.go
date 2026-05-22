@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
+	"io"
 
+	"github.com/fatih/color"
 	"github.com/runk/pulse/internal/policy"
 	"github.com/runk/pulse/internal/runner"
 	"github.com/spf13/cobra"
@@ -36,19 +39,29 @@ You can specify the level of concurrency for running checks using the --concurre
 			return fmt.Errorf("Error reading policy: %w", err)
 		}
 
-		// fmt.Fprintf(stdout, "Policy loaded: %+v\n", policy)
 		err = policy.Validate()
 		if err != nil {
 			return err
 		}
 
-		// currently Execute will send exit signal - it should change
-		err = runner.Execute(policy.Checks, concurrency, timeout)
-		if err != nil {
+		errs := make(chan error, 1)
+		results := make(chan runner.Result, len(policy.Checks))
+
+		go func() {
+			defer close(results)
+			errs <- runner.Execute(policy.Checks, results, concurrency, timeout)
+		}()
+
+		if ok := formatResults(stdout, results); !ok {
+			return errors.New("Some checks failed")
+		}
+
+		if err = <-errs; err != nil {
 			return err
 		}
 
 		return nil
+
 	},
 }
 
@@ -67,4 +80,25 @@ func init() {
 
 	runCmd.Flags().Uint16VarP(&concurrency, "concurrency", "c", 4, "Level of concurrency")
 	runCmd.Flags().Uint32VarP(&timeout, "timeout", "t", 3000, "Timeout for each check in milliseconds")
+}
+
+func formatResults(stdout io.Writer, results chan runner.Result) bool {
+	pass := color.New(color.FgGreen).Sprint("PASS")
+	fail := color.New(color.FgRed).Sprint("FAIL")
+	ok := true
+	for result := range results {
+		if !result.Ok {
+			ok = false
+		}
+
+		typ := color.New(color.FgBlack).Sprint(result.Type)
+
+		if result.Ok {
+			fmt.Fprintf(stdout, "%s %s %s\n", pass, typ, result.Subject)
+		} else {
+			fmt.Fprintf(stdout, "%s %s %s: %s\n", fail, typ, result.Subject, result.Message)
+		}
+	}
+
+	return ok
 }

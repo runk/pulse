@@ -11,6 +11,7 @@ type CheckValue interface {
 	Type() string
 	Run(ctx context.Context) error
 	Validate() error
+	Subject() string
 }
 
 type Check struct {
