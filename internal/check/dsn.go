@@ -63,6 +63,10 @@ func (c DNSCheck) Validate() error {
 	return nil
 }
 
+func (c DNSCheck) Subject() string {
+	return fmt.Sprintf("%s", c.Host)
+}
+
 func checkRecords[T any](
 	ctx context.Context,
 	host string,

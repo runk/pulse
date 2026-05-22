@@ -3,7 +3,7 @@
   "checks": [
     {
       "type": "http",
-      "method": "head",
+      "method": "get",
       "url": "https://example.com",
       "assertions": [
         {
@@ -27,7 +27,14 @@
     },
     {
       "type": "http",
-      "url": "https://yahoo.com"
+      "url": "https://yahoo.com",
+      "assertions": [
+        {
+          "statusCode": {
+            "between": [400, 499]
+          }
+        }
+      ]
     },
     {
       "type": "http",
@@ -39,7 +46,14 @@
     },
     {
       "type": "http",
-      "url": "https://wikipedia.com"
+      "url": "https://wikipedia.com",
+      "assertions": [
+        {
+          "statusCode": {
+            "equals": 403
+          }
+        }
+      ]
     },
     {
       "type": "http",

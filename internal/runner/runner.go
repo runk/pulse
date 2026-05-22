@@ -39,14 +39,16 @@ func Execute(checks []check.Check, results chan Result, concurrency uint16, time
 
 			if err := check.Value.Run(ctx); err != nil {
 				results <- Result{
-					Type:    check.Value.Type(),
 					Ok:      false,
+					Type:    check.Value.Type(),
+					Subject: check.Value.Subject(),
 					Message: err.Error(),
 				}
 			} else {
 				results <- Result{
-					Type: check.Value.Type(),
-					Ok:   true,
+					Ok:      true,
+					Type:    check.Value.Type(),
+					Subject: check.Value.Subject(),
 				}
 			}
 		})

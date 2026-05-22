@@ -113,6 +113,14 @@ func (c TLSCheck) Run(ctx context.Context) error {
 	return nil
 }
 
+func (c TLSCheck) Subject() string {
+	if c.Port > 0 {
+		return fmt.Sprintf("%s:%d", c.Host, c.Port)
+	}
+
+	return fmt.Sprintf("%s", c.Host)
+}
+
 func dialTLS(ctx context.Context, addr, serverName string, minVersion, maxVersion uint16, cipherSuites []uint16) (*tls.Conn, error) {
 	dialer := &tls.Dialer{
 		NetDialer: &net.Dialer{},
